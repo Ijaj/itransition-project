@@ -23,7 +23,7 @@ namespace project_backend.Models
     public int CategoryId { get; set; }
 
     [ForeignKey("CategoryId")]
-    public Category? Category { get; set; }
+    public required Category Category { get; set; }
 
     [Required]
     public required int UserId { get; set; }

@@ -69,6 +69,12 @@ namespace project_backend.Data
             .HasForeignKey(i => i.ItemId)
             .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Item>()
+            .HasOne(i => i.Collection)
+            .WithMany(c => c.Items)
+            .HasForeignKey(i => i.CollectionId)
+            .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Collection>()
             .HasMany(c => c.CustomFields)
             .WithOne(cf => cf.Collection)
@@ -92,6 +98,13 @@ namespace project_backend.Data
             .WithOne(cf => cf.CustomField)
             .HasForeignKey(cf => cf.CustomFieldId)
             .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<CustomField>()
+            .HasOne(cf => cf.Collection)
+            .WithMany(cf => cf.CustomFields)
+            .HasForeignKey(cf => cf.CollectionId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         }
     }
 }
