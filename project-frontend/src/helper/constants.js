@@ -53,6 +53,29 @@ export const mysqlDataTypes = [
   { label: "True/False (Checkbox)", value: "BOOLEAN" },         // 7
 ];
 
+export function getTypeWithLabel(type) {
+  switch (type) {
+    case "INT":
+      return mysqlDataTypes[0];
+    case "FLOAT":
+      return mysqlDataTypes[1];
+    case "VARCHAR":
+      return mysqlDataTypes[2];
+    case "TEXT":
+      return mysqlDataTypes[3];
+    case "DATE":
+      return mysqlDataTypes[4];
+    case "TIME":
+      return mysqlDataTypes[5];
+    case "DATETIME":
+      return mysqlDataTypes[6];
+    case "BOOLEAN":
+      return mysqlDataTypes[7];
+    default:
+      return mysqlDataTypes[0];
+  }
+}
+
 export const formats = {
   'DATE': 'DD-MM-YYYY',
   'TIME': 'HH:mm:ss',
@@ -105,4 +128,13 @@ export function customFieldOnChange(newValue, type) {
   }
 }
 
-export const defaultCategory = { id: -1, label: 'Select One' };
+export const defaultCategory = { id: -1, name: 'Select One' };
+
+export const axios_config = (token) => {
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token ?? ''}`,
+    }
+  }
+}

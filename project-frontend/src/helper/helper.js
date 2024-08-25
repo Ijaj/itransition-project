@@ -66,4 +66,12 @@ export function getSearchFilter() {
   return Number.parseInt(sessionStorage.getItem('search_filter'));
 }
 
+export function setLogin(user){
+  if(!user || user === false) sessionStorage.removeItem('user');
+  else sessionStorage.setItem('user', JSON.stringify(user));
+}
 
+export function getLogin(){
+  const user = sessionStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
+}

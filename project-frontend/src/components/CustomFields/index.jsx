@@ -17,10 +17,13 @@ import {
 } from '@mui/material';
 
 import { Add, Delete } from '@mui/icons-material';
-import { mysqlDataTypes } from '../../helper/constants';
+import { mysqlDataTypes, getTypeWithLabel } from '../../helper/constants';
 
 export default function CustomFields({ onChange, customFields, onDelete }) {
   const theme = useTheme();
+  const _customFIelds = customFields.map(cf => ({ name: cf.name, type: getTypeWithLabel(cf.type), isRequired: cf.isRequired }));
+  console.log(customFields);
+  console.log(_customFIelds);
   const [newField, setNewField] = useState({
     name: '',
     type: {
@@ -57,7 +60,11 @@ export default function CustomFields({ onChange, customFields, onDelete }) {
     }
 
     if (error) return;
-    onChange(newField);
+    onChange({
+      name: newField.name,
+      type: newField.type.value,
+      isRequired: newField.isRequired,
+    });
   }
 
   return (<Box sx={{ width: '100%' }}>
@@ -105,17 +112,17 @@ export default function CustomFields({ onChange, customFields, onDelete }) {
       }}
     >
       <List sx={{
-        py: customFields.length === 0 ? 0 : 1,
+        py: _customFIelds.length === 0 ? 0 : 1,
         px: 2,
       }}>
-        {customFields.length === 0 && (
+        {_customFIelds.length === 0 && (
           <ListItem
             key={0}
           >
             <ListItemText primary={`No Custom Fields Added`} secondary={` `} />
           </ListItem>
         )}
-        {customFields.map((field, index) => (
+        {_customFIelds.map((field, index) => (
           <ListItem
             key={index}
             secondaryAction={
@@ -126,7 +133,7 @@ export default function CustomFields({ onChange, customFields, onDelete }) {
           >
             <ListItemText
               primary={`Field Name:  ${field.name}`}
-              secondary={`Value Type: ${field.type.value} - ${field.isRequired ? 'Required' : 'Not Required'}`}
+              secondary={`Value Type: ${field.type.label} - ${field.isRequired ? 'Required' : 'Not Required'}`}
             />
           </ListItem>
         ))}

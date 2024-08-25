@@ -8,16 +8,19 @@ import {
   Container,
 } from '@mui/material';
 
+import axios from 'axios';
+
 import Login from './Login';
 import Register from './Register';
-import { AlertProvider, useAlert } from '../../components/Alert/index';
+import { useAlert } from '../../components/Alert/index';
+import { setLogin } from '../../helper/helper';
 
 function LoginPage() {
   const showAlert = useAlert();
   const navigate = useNavigate();
   const duration = 1000;
+  const host = process.env.REACT_APP_HOST;
 
-  const [path, setPath] = useState('');
   const [tabValue, setTabValue] = useState(0);
 
   function handleTabChange(event, newValue) {
@@ -25,22 +28,61 @@ function LoginPage() {
   };
 
   function onSubmitLogin(payload) {
-    showAlert({
-      msg: 'First alert!',
-      type: 'success',
-      onCloseCallback: () => console.log('First alert closed!'),
-      duration: 5
-    });
-    console.log(useAlert)
+    const url = `${host}/auth/login`;
+
+    axios.post(url, payload)
+      .then(result => {
+        if (result.status === 200) {
+          setLogin(result.data);
+          //navigate('/', { replace: true });
+          window.location.href = '/'
+        }
+        else {
+          showAlert({
+            msg: 'Login Failed',
+            type: 'error',
+            // onCloseCallback: () => console.log('First alert closed!'),
+            duration: 5
+          });
+        }
+      })
+      .catch(error => {
+        showAlert({
+          msg: error.message,
+          type: 'error',
+          // onCloseCallback: () => console.log('First alert closed!'),
+          duration: 5
+        });
+      });
   }
 
   function onSubmitRegistration(payload) {
-    showAlert({
-      msg: 'First alert!',
-      type: 'success',
-      onCloseCallback: () => console.log('First alert closed!'),
-      duration: 5
-    });
+    const url = `${host}/auth/register`;
+
+    axios.post(url, payload)
+      .then(result => {
+        if (result.status === 201) {
+          setLogin(result.data);
+          // navigate('/', { replace: true });
+          window.location.href = '/'
+        }
+        else {
+          showAlert({
+            msg: 'Registration Failed',
+            type: 'error',
+            // onCloseCallback: () => console.log('First alert closed!'),
+            duration: 5
+          });
+        }
+      })
+      .catch(error => {
+        showAlert({
+          msg: error.message,
+          type: 'error',
+          // onCloseCallback: () => console.log('First alert closed!'),
+          duration: 5
+        });
+      });
   }
 
   return (

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link as RouterLink, useParams } from 'react-router-dom';
 import {
   Grid,
   Container,
@@ -22,6 +22,8 @@ import CollectionList from './collections-list';
 import NewCollection from './new-collection-modal';
 import CategorySelection from '../../../components/CategorySelection';
 import axios from 'axios';
+import { axios_config, defaultCategory } from '../../../helper/constants';
+// import { generateCollections } from '../../../Data';
 
 const minMaxSx = {
   '& input[type=number]': {
@@ -35,18 +37,24 @@ const minMaxSx = {
   },
 };
 
-export default function Collections() {
+// const collections = generateCollections(40, 20);
+
+export default function Collections({ user }) {
+  const host = process.env.REACT_APP_HOST;
+  const id = Number.parseInt(useParams().id);
+  const owned = user && id && user.id === id;
   const [newCollectionOpen, setNewCollectionOpen] = useState(false);
   const [updateData, setUpdateData] = useState(null);
+  const [collections, setCollections] = useState([]);
 
   const [sortOption, setSortOption] = useState('none');
-  const [category, setCategory] = useState(-1);
+  const [category, setCategory] = useState(defaultCategory);
   const [itemCountRange, setItemCountRange] = useState([0, 1000]);
   const [hasImage, setHasImage] = useState('all');
 
   function clearFilter() {
     setSortOption('none');
-    setCategory(-1);
+    setCategory(defaultCategory);
     setItemCountRange([0, 1000]);
     setHasImage('all')
   }
@@ -56,9 +64,35 @@ export default function Collections() {
   const handleItemCountChange = (e, newValue) => setItemCountRange(newValue);
   const handleHasImageChange = (value) => setHasImage(value);
 
-  function onCraeteNewCollection(){
-    console.log('do a server based reload');
-  }
+  // will also be used in the load more item, so do not set
+  const fetchData = useCallback(async (start, limit) => {
+    const url = `${host}/collection/${id && id > 0 ? 'user/' + id + '/' : ''}?start=${start}&limit=${limit}`;
+    try {
+      const response = await axios.get(url);
+      return response?.data;
+    } catch (error) {
+      window.alert('Error fetching data:', error);
+      return null;
+    }
+  }, [host, id]);
+
+  // this sets the state
+  const loadData = useCallback(async () => {
+    const data = await fetchData(0, 10);
+    if (data) {
+      setCollections(data);
+    } else {
+      window.alert('Failed to fetch data');
+    }
+  }, [fetchData]);
+
+  useEffect(() => {
+    async function _fetchData() {
+      loadData();
+    }
+
+    _fetchData();
+  }, [loadData]);
 
   // modal related functions
 
@@ -72,7 +106,7 @@ export default function Collections() {
     setNewCollectionOpen(false);
   }
 
-  async function applyFilters(){
+  async function applyFilters() {
     try {
       const response = await axios.get('/api/items', {
         params: {
@@ -91,6 +125,38 @@ export default function Collections() {
     }
   };
 
+  function handleNewCollection(payload) {
+    const url = `${host}/collection`;
+    axios.post(url, payload, axios_config(user.token))
+      .then(result => {
+        // dont need the return value now, just reload the page, no time!!!!!!!
+        loadData();
+        closeNewCollectionModal();
+      })
+      .catch(error => window.alert('Error Creating New Collection. ', error.message));
+  }
+
+  function handleUpdateCOllection(payload){
+    console.log(payload);
+    const url = `${host}/collection/${payload.Id}`;
+    axios.put(url, payload, axios_config(user.token))
+      .then(result => {
+        // dont need the return value now, just reload the page, no time!!!!!!!
+        loadData();
+        closeNewCollectionModal();
+      })
+      .catch(error => window.alert('Error Creating New Collection. ', error.message));
+  }
+
+  function handleDeleteCollection(id){
+    const url = `${host}/collection/${id}`;
+    axios.delete(url, axios_config(user.token))
+    .then(result => {
+      loadData();
+    })
+    .catch(error => window.alert('Failed to delete collection'));
+  }
+
   // if the session storage has the same user id as the logged in user, then show add buttons
   // if using this collections page to display all collection, then do not show add buttons
   // if no user id is specified in session storage, then display all collections
@@ -107,23 +173,25 @@ export default function Collections() {
         open={newCollectionOpen}
         handleClose={closeNewCollectionModal}
         collection={updateData}
-        onCreate={onCraeteNewCollection}
+        onUpdate={handleUpdateCOllection}
+        onSave={handleNewCollection}
+        id={id}
       />
       <Box
         sx={{ mb: 2 }}
       >
-        <Typography variant='h4' fontWeight={300}>Your Collections</Typography>
+        <Typography variant='h4' fontWeight={300}>{owned ? 'Your Collections' : 'All Collections'}</Typography>
       </Box>
       <Grid container spacing={0}>
         <Grid item xs={3}>
-          <Grid container spacing={1} direction="column" paddingRight={1}>
+          <Grid container spacing={3} direction="column" paddingRight={1}>
             <Grid item>
               <Divider textAlign="left">Sort Options</Divider>
             </Grid>
             <Grid item>
               <Select size='small' value={sortOption} onChange={(e) => handleSortChange(e.target.value)} fullWidth displayEmpty>
                 <MenuItem value="none">None</MenuItem>
-                <MenuItem value="category">Category</MenuItem>
+                <MenuItem value="cat">Category</MenuItem>
                 <MenuItem value="htl">Items: Hight {'->'} Low</MenuItem>
                 <MenuItem value="lth">Items: Low {'->'} High</MenuItem>
               </Select>
@@ -210,6 +278,10 @@ export default function Collections() {
         <Grid item xs={9}>
           <CollectionList
             openNewCollectionModal={openNewCollectionModal}
+            collections={collections}
+            ownCollection={id && user && user.id === id}
+            fetchData={fetchData}
+            onDelete={handleDeleteCollection}
           />
         </Grid>
       </Grid>

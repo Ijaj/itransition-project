@@ -13,96 +13,99 @@ import UserSettings from './views/public/user-settings';
 
 import Authentication from './views/authentication';
 import AdminHomePage from "./views/admin";
+import { getLogin } from "./helper/helper";
+
+const user = getLogin();
 
 const publicRoutesArray = [
-    {
-        element: <PublicLayout />,
-        children: [
-            {
-                path: "/",
-                element: <PublicHomePage />,
-            },
-            {
-                path: "/collections/",      // list of all collections 
-                element: <Collections />,
-            },
-            {
-                path: "/collections/:id",   // list of all collections by a specific user
-                element: <Collections />,
-            },
-            {
-                path: "/collection/:id",    // details of a collection with list of items
-                element: <Items />,
-            },
-            {
-                path: "/collection/:collectionId/item/:itemId",     // item details
-                element: <Item />,
-            },
-            {
-                path: "/search",
-                element: <Search />,
-            },
-            {
-                path: "/collections/:id/settings",
-                element: <CollectionSettings />,
-            },
-            {
-                path: "/settings",
-                element: <UserSettings />,
-            },
-        ],
-    },
+  {
+    element: <PublicLayout user={user} />,
+    children: [
+      {
+        path: "/",
+        element: <PublicHomePage user={user} />,
+      },
+      {
+        path: "/collections/",      // list of all collections 
+        element: <Collections user={user} />,
+      },
+      {
+        path: "/collections/:id",   // list of all collections by a specific user
+        element: <Collections user={user} />,
+      },
+      {
+        path: "/collection/:id",    // details of a collection with list of items
+        element: <Items user={user} />,
+      },
+      {
+        path: "/collection/:collectionId/item/:itemId",     // item details
+        element: <Item user={user} />,
+      },
+      {
+        path: "/search",
+        element: <Search user={user} />,
+      },
+      {
+        path: "/collections/:id/settings",
+        element: <CollectionSettings user={user} />,
+      },
+      {
+        path: "/settings",
+        element: <UserSettings user={user} />,
+      },
+    ],
+  },
 ];
 
 const adminRoutesArray = [
-    {
-        element: <AdminLayout />,
-        children: [
-            {
-                path: "/",
-                element: <PublicHomePage />,
-            },
-            {
-                path: "/users",
-                element: <AdminHomePage />,
-            },
-            {
-                path: "/collections/",
-                element: <Collections />,
-            },
-            {
-                path: "/collections/:id",   // this is user id
-                element: <Collections />,
-            },
-            {
-                path: "/collection/:id",
-                element: <Items />,
-            },
-            {
-                path: "/collection/:collectionId/item/:itemId",
-                element: <Item />,
-            },
-            {
-                path: "/search",
-                element: <Search />,
-            },
-            {
-                path: "/collections/:id/settings",
-                element: <CollectionSettings />,
-            },
-            {
-                path: "/settings",
-                element: <UserSettings />,
-            },
-        ],
-    },
+  {
+    element: <AdminLayout user={user} />,
+    children: [
+      {
+        path: "/",
+        element: <PublicHomePage user={user} />,
+      },
+      {
+        path: "/users",
+        element: <AdminHomePage user={user} />,
+      },
+      {
+        path: "/collections/",
+        element: <Collections user={user} />,
+      },
+      {
+        path: "/collections/:id",   // this is user id
+        element: <Collections user={user} />,
+      },
+      {
+        path: "/collection/:id",
+        element: <Items user={user} />,
+      },
+      {
+        path: "/collection/:collectionId/item/:itemId",
+        element: <Item user={user} />,
+      },
+      {
+        path: "/search",
+        element: <Search user={user} />,
+      },
+      {
+        path: "/collections/:id/settings",
+        element: <CollectionSettings user={user}/>,
+      },
+      {
+        path: "/settings",
+        element: <UserSettings user={user}/>,
+      },
+    ],
+  },
 ];
 
 const authenticationToutesArray = [
-    {
-        path: "/authentication",
-        element: <Authentication />,
-    }
+  {
+    path: "/authentication",
+    element: <Authentication />,
+  }
 ];
 
 // const adminRoutesArray = [
@@ -162,5 +165,5 @@ const authenticationToutesArray = [
 
 // do user validation
 
-export const activeRoutesArray = adminRoutesArray;
+export const activeRoutesArray = user && user.role === 'admin' ? adminRoutesArray : publicRoutesArray;
 export const activeRoutes = createBrowserRouter([...authenticationToutesArray, ...activeRoutesArray]);

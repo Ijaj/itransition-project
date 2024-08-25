@@ -26,7 +26,7 @@ import {
   FormControl,
 
 } from '@mui/material';
-import { CloseRounded, Delete } from '@mui/icons-material';
+import { CloseRounded } from '@mui/icons-material';
 
 import TextEditor from '../../../components/TextEditor';
 import ImageUpload from '../../../components/FileUpload';
@@ -34,6 +34,7 @@ import { customScrollbar } from '../../../helper/constants';
 import CustomFields from '../../../components/CustomFields';
 import parse from 'html-react-parser';
 import CategorySelection from '../../../components/CategorySelection';
+import { defaultCategory } from "../../../helper/constants";
 
 const steps = ['Required', 'Fields', 'Review'];
 const emptyForm = {
@@ -41,10 +42,10 @@ const emptyForm = {
   description: '',
   image: [],
   customFields: [],
-  category: '',
+  category: defaultCategory,
 };
 
-export default function NewCollection({ open, handleClose, onSave, isUpdate, collection }) {
+export default function NewCollection({ open, handleClose, onSave, onUpdate, id, collection }) {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const dialogContentRef = useRef(null);
@@ -72,12 +73,22 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
     // setCustomFields(collection ? collection.customFields : []);
   }, [collection]);
 
+  console.log(collection)
+  console.log(formData)
+
   function handleNext(isSubmit) {
     if (isSubmit) {
+      console.log(formData.customFields);
       const payload = {
-        ...formData //, customFields: customFields
+        Name:  formData.name,
+        Description: formData.description,
+        CategoryId: formData.category.id,
+        Image: typeof formData.image === "string" ? formData.image : formData.image.length === 1 ? formData.image[0].base64 : null,
+        UserId: id,
+        CustomFields: formData.customFields.map(cf => ({ Name: cf.name, Type: cf.type, IsRequired: cf.isRequired })),
       };
-      // on parent, re-fetch using onSave
+      if(collection) onUpdate({ ...payload, Id: collection.id });
+      else onSave(payload);
     }
     else {
       setSlideDirection('left');
@@ -96,12 +107,10 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
 
   function handleDeleteNewField(index) {
     setFormData(old => ({ ...old, customFields: old.customFields.filter((_, i) => i !== index) }))
-    // setCustomFields(old => old.filter((_, i) => i !== index));
   }
 
   function handleNewField(newField) {
     setFormData(old => ({ ...old, customFields: [...old.customFields, newField] }));
-    // setCustomFields(old => [...old, newField]);
   }
 
   function handleImageChange(newImages) {
@@ -112,11 +121,12 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
   }
 
   function handleCategoryChange(newValue) {
+    console.log("new value: ", newValue);
     setFormData(old => ({ ...old, category: newValue }));
   }
 
-  function firstStepFinished() {
-    return (formData.name === '' || formData.name.length === 0)
+  function firstStepNotFinished() {
+    return ((formData.name === '' || formData.name.length === 0) && formData.category)
   }
 
   function closeModal() {
@@ -126,6 +136,7 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
   }
 
   function getStepContent(step){
+    console.log(formData.image);
     switch (step) {
       case 0:
         return (
@@ -144,7 +155,7 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
             </Grid>
             <Grid item lg={6}>
               <FormControl margin='normal' fullWidth>
-                <CategorySelection onChange={handleCategoryChange} />
+                <CategorySelection onChange={handleCategoryChange} value={collection ? collection.category : undefined} />
               </FormControl>
             </Grid>
             <Grid item lg={6}>
@@ -159,7 +170,7 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
               Cover Image (Optional)
               <ImageUpload
                 singleFile
-                initialImages={formData.image}
+                initialImages={[collection?.image]}
                 onImagesChange={handleImageChange}
               />
             </Grid>
@@ -205,8 +216,8 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
                     <TableCell>Image</TableCell>
                     <TableCell>
                       {formData.image.length === 0 && ('No Image Selected')}
-                      {formData.image.length === 1 && (
-                        <img src={typeof formData.image[0] === 'string' ? formData.image[0] : formData.image[0].preview} alt='...' />
+                      {formData.image.length > 0 && (
+                        <img height={200} src={typeof formData.image === 'string' ? formData.image : formData.image[0].preview} alt='...' />
                       )}
                     </TableCell>
                   </TableRow>
@@ -242,7 +253,7 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
                             >
                               <ListItemText
                                 primary={`Field Name:  ${field.name}`}
-                                secondary={`Value Type: ${field.type.value} - ${field.isRequired ? 'Required' : 'Not Required'}`}
+                                secondary={`Value Type: ${field.type} - ${field.isRequired ? 'Required' : 'Not Required'}`}
                               />
                             </ListItem>
                           ))}
@@ -319,7 +330,7 @@ export default function NewCollection({ open, handleClose, onSave, isUpdate, col
                     <Box sx={{ flex: '1 1 auto' }} />
                     <Button
                       onClick={() => handleNext(activeStep === steps.length - 1)}
-                      disabled={activeStep === 0 && firstStepFinished()}
+                      disabled={activeStep === 0 && firstStepNotFinished()}
                     >
                       {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
                     </Button>

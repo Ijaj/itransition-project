@@ -28,7 +28,9 @@ export default function Register({ onSubmit }) {
       name: formDataObj.get('name'),
       email: formDataObj.get('email'),
       username: formDataObj.get('username'),
-      password: formDataObj.get('password'),
+      newPassword: formDataObj.get('password'),
+      confirmNewPassword: formDataObj.get('password'),
+      role: 'user',
     }
 
     onSubmit(payload);

@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router';
 import NoImage from '../../assets/images/no-image.png';
 
 export default function DisplayItems({ items }) {
+  console.log(items)
   const navigate = useNavigate();
   return (
     <Container maxWidth={'xl'} sx={{ my: 4 }}>
@@ -28,14 +29,11 @@ export default function DisplayItems({ items }) {
                   alt={item.name}
                 />
                 <CardContent>
-                  <Typography gutterBottom variant="h6" component="div">
+                  <Typography gutterBottom variant="h5" component="div">
                     {item.name}
                   </Typography>
                   <Typography gutterBottom variant="h6" component="div">
-                    By {item.author}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.collection}
+                    In {item.collectionName}
                   </Typography>
                 </CardContent>
               </CardActionArea>

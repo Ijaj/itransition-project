@@ -1,36 +1,30 @@
 import { Autocomplete, FormControl, TextField } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { defaultCategory } from "../../helper/constants";
+import axios from "axios";
 
-const cats = [
-  { id: -1, label: 'Select One' },
-  { id: 1, label: 'cat 1' },
-  { id: 3, label: 'cat 3' },
-  { id: 2, label: 'cat 2' },
-];
-
-export default function CategorySelection({ onChange, value = -1, isError = false, size = 'medium' }){
+export default function CategorySelection({ onChange, value = defaultCategory, isError = false, size = 'medium' }) {
   const [categories, setCategories] = useState([defaultCategory]);
-  const [_value, setValue] = useState(categories.length > 1 ? value : defaultCategory);
+  const [_value, setValue] = useState(value);
 
   useEffect(() => {
-    let timer;
-    // fetch from db
-    if(categories.length > 1){
-      setValue(cats.find(cat => cat.id === value));
-    }
-    else{
-      timer = setTimeout(() => {
-        setValue(cats.find(cat => cat.id === value));
+    const host = process.env.REACT_APP_HOST;
+    const url = `${host}/category`
+    axios.get(url)
+      .then(({ data }) => {
         setCategories(
-          [...cats]
+          data.map(cat => ({ id: cat.id, label: cat.name }))
         );
-      }, 2000);
-  
-    }
+      })
+  }, []);
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    setValue(value);
   }, [value]);
+
+  useEffect(() => {
+    if (categories && value && value > 0) setValue(categories.find(cat => cat.Id === value));
+  }, [categories, value]);
 
   function _onChange(newValue) {
     setValue(newValue);
@@ -41,7 +35,7 @@ export default function CategorySelection({ onChange, value = -1, isError = fals
     <FormControl fullWidth>
       <Autocomplete
         size={size}
-        getOptionLabel={(option) => option.label}
+        getOptionLabel={(option) => option.name}
         renderInput={(params) => <TextField {...params} label="Category" error={isError} />}
         options={categories}
         value={_value}

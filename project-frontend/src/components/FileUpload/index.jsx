@@ -47,6 +47,8 @@ export default function ImageUpload({ initialImages = [], onImagesChange, single
     onImagesChange(newImages);
   };
 
+  console.log(images);
+
   return (
     <Box>
       <Box

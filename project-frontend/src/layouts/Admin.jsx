@@ -27,9 +27,9 @@ import AppsIcon from '@mui/icons-material/Apps';
 import Authentication from "../views/authentication";
 import { activeRoutesArray } from "../routes.js";
 import { getTheme, isDarkThemeEnabled, switchTheme } from "../themes";
-import { AlertProvider } from "../components/Alert";
 import MyAppBar from "../components/AppBar/index.jsx";
 import Search from "../views/public/search/app-bar-search.jsx";
+import { getLogin, setLogin } from "../helper/helper.js";
 
 const SidebarContainer = styled(Box)(({ theme }) => ({
   overflow: "auto",
@@ -57,8 +57,13 @@ export default function PublicLayout() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [darkMode, setDarkMode] = useState(isDarkThemeEnabled());
+  const user = getLogin();
+  const loggedIn = user !== null;
 
-  const loggedIn = activeRoutesArray[0].path !== "/login";
+  function handleLogout(){
+    setLogin(false);
+    window.location.href = window.location.pathname + window.location.search + window.location.hash;
+  }
 
   return (
     <ThemeProvider theme={getTheme()}>
@@ -123,7 +128,7 @@ export default function PublicLayout() {
                     <Typography>Dark</Typography>
                   </Box>
                   <FormControl fullWidth>
-                    <Button variant="contained" color="error">
+                    <Button variant="contained" color="error" onClick={handleLogout}>
                       LOGOUT
                     </Button>
                   </FormControl>
